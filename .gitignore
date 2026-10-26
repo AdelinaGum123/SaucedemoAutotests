@@ -1,0 +1,21 @@
+# Специфичные файлы PyCharm
+.idea/
+
+# Кэш Python и pytest
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Виртуальное окружение
+venv/
+.venv/
+env/
+
+# Отчеты Allure
+allure-results/
+allure-report/
+
+# Системные файлы
+.DS_Store
+Thumbs.db
+

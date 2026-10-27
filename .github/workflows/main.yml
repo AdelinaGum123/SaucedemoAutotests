@@ -13,9 +13,11 @@ permissions:
 
 jobs:
   test:
+    # Фиксируем стабильную версию Ubuntu, чтобы избежать предупреждений системы
     runs-on: ubuntu-24.04
 
     steps:
+      # Используем обновленную версию экшена checkout
       - name: Checkout repository
         uses: actions/checkout@v4.2.2
 
@@ -40,30 +42,37 @@ jobs:
 
       - name: Run Pytest UI Tests
         run: pytest
-        continue-on-error: true # Если тесты упадут, мы всё равно соберем отчет
-
-      - name: Load Allure history
-        run: |
-          git fetch origin
-          if git show-ref --verify --quiet refs/remotes/origin/gh-pages; then
-            git clone --branch gh-pages --single-branch https://github.com{{ github.repository }}.git gh-pages
-            mkdir -p allure-history
-            cp -r gh-pages/* allure-history/ || true
-          else
-            echo "Ветка gh-pages еще не существует. Это первый запуск. Создаем пустую историю."
-            mkdir -p allure-history
-          fi
+        # Если тесты упадут, мы всё равно продолжим, чтобы сгенерировать отчет со скриншотами
         continue-on-error: true
 
+      # Устанавливаем Allure CLI напрямую в систему (это быстрее и надежнее Docker-контейнеров)
+      - name: Install Allure CLI
+        if: always()
+        run: |
+          sudo apt-get update && sudo apt-get install -y openjdk-17-jre-headless
+          wget https://github.com
+          sudo dpkg -i allure_2.24.1-1_all.deb
 
-      - name: Build Allure Report
-        uses: simple-elf/allure-report-action@v1.11
+      # Безопасный выкач истории: если ветки gh-pages нет, шаг просто создаст пустую папку
+      - name: Load Allure history
+        uses: actions/checkout@v4.2.2
         if: always()
         with:
-          allure_results: allure-results
-          allure_history: allure-history
-          keep_reports: 20
+          ref: gh-pages
+          path: gh-pages-dir
+        continue-on-error: true
 
+      # Копируем старую историю в результаты (если она есть) и собираем новый отчет
+      - name: Build Allure Report
+        if: always()
+        run: |
+          mkdir -p allure-history
+          if [ -d "gh-pages-dir/history" ]; then
+            cp -r gh-pages-dir/history allure-results/
+          fi
+          allure generate allure-results -o allure-history --clean
+
+      # Публикуем отчет в GitHub Pages
       - name: Deploy Allure Report to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         if: always()

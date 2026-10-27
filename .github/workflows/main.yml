@@ -19,11 +19,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4.2.2
 
+      # Исправлено: отключен встроенный кэш Python, вызывающий ошибку 400
       - name: Set up Python 3.11
         uses: actions/setup-python@v5.3.0
         with:
           python-version: '3.11'
-          cache: 'pip'
 
       - name: Install dependencies
         run: |
@@ -42,16 +42,7 @@ jobs:
         run: pytest
         continue-on-error: true
 
-      # Шаг 1: Нативная и быстрая установка Allure CLI напрямую в Ubuntu
-      - name: Install Allure CLI
-        if: always()
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y openjdk-17-jre-headless
-          wget https://github.com
-          sudo dpkg -i allure_2.24.1-1_all.deb
-
-      # Шаг 2: Безопасное скачивание истории прошлых тестов
+      # Безопасный выкач истории прошлых тестов
       - name: Load Allure history
         uses: actions/checkout@v4.2.2
         if: always()
@@ -60,17 +51,25 @@ jobs:
           path: gh-pages-dir
         continue-on-error: true
 
-      # Шаг 3: Перенос старой истории и нативная сборка нового отчета
-      - name: Build Allure Report
+      # Перенос старой истории (если есть) в результаты
+      - name: Move Allure history
         if: always()
         run: |
-          mkdir -p allure-history
           if [ -d "gh-pages-dir/history" ]; then
-            cp -r gh-pages-dir/history allure-results/ || true
+            mkdir -p allure-results
+            cp -r gh-pages-dir/history allure-results/
           fi
-          allure generate allure-results -o allure-history --clean
 
-      # Шаг 4: Деплой готовой статики в GitHub Pages
+      # Корректная сборка отчета через официальный экшен (без Docker)
+      - name: Build Allure Report
+        uses: simple-elf/allure-report-action@v1.12
+        if: always()
+        with:
+          allure_results: allure-results
+          allure_history: allure-history
+          keep_reports: 20
+
+      # Публикация готового отчета в GitHub Pages
       - name: Deploy Allure Report to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4.0.0
         if: always()

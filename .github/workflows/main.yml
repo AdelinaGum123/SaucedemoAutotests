@@ -13,11 +13,11 @@ permissions:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
@@ -43,12 +43,18 @@ jobs:
         continue-on-error: true # Если тесты упадут, мы всё равно соберем отчет
 
       - name: Load Allure history
-        uses: actions/checkout@v4
-        if: always()
-        with:
-          ref: gh-pages
-          path: gh-pages
-        continue-on-error: true # Если ветки gh-pages еще нет, шаг не заблокирует сборку
+        run: |
+          git fetch origin
+          if git show-ref --verify --quiet refs/remotes/origin/gh-pages; then
+            git clone --branch gh-pages --single-branch https://github.com{{ github.repository }}.git gh-pages
+            mkdir -p allure-history
+            cp -r gh-pages/* allure-history/ || true
+          else
+            echo "Ветка gh-pages еще не существует. Это первый запуск. Создаем пустую историю."
+            mkdir -p allure-history
+          fi
+        continue-on-error: true
+
 
       - name: Build Allure Report
         uses: simple-elf/allure-report-action@v1.11

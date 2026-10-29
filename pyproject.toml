@@ -4,3 +4,7 @@ base_url = "https://www.saucedemo.com"
 # addopts автоматически добавляет указанные флаги при каждом вызове команды pytest
 addopts = "--alluredir=allure-results --clean-alluredir"
 testpaths = ["tests"]
+markers = [
+    "smoke: быстрые проверки основных сценариев",
+    "regression: расширенный регрессионный набор",
+]

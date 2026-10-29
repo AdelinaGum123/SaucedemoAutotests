@@ -1,38 +1,55 @@
 # Файл хранит общие методы, которые нужны на любой странице
-from playwright.sync_api import Page, expect
+from playwright.sync_api import Locator, Page, expect
 import allure
 
 
 class BasePage:
+    # Путь страницы относительно base_url
+    PATH = '/'
+
     def __init__(self, page: Page):
         # Сохраняем вкладку браузера внутри класса, чтобы управлять ей в других методах
         self.page = page
 
-    @allure.step("Открываем {url} браузере, ждем пока страница загрузится")
-    def open_url(self, url: str):
-        return self.page.goto(url)
+    @allure.step("Открываем страницу")
+    def open(self) -> None:
+        with allure.step(f"Переходим по адресу {self.PATH}"):
+            self.page.goto(self.PATH)
 
-    @allure.step("Возвращает текстовый заголовок текущей вкладки браузера")
-    def get_title(self) -> str:
-        return self.page.title()
+    @allure.step("Проверяем заголовок вкладки")
+    def should_have_title(self, title: str) -> None:
+        expect(self.page).to_have_title(title)
 
+    @allure.step("Проверяем, что открыта страница: {self.PATH}")
+    def should_have_url(self) -> None:
+        expect(self.page).to_have_url(
+            lambda url: url.endswith(self.PATH)
+        )
 
-    @allure.step("Клик по элементу с селектором: {selector}")
-    def click_element(self, selector: str):
-        self.page.locator(selector).click()
+    @allure.step("Клик по элементу")
+    def click(self, locator: Locator) -> None:
+        locator.click()
 
-
-    @allure.step("Ввод текста в элемент с селектором: {selector}")
-    def fill_element(self, selector: str, text: str):
-        self.page.locator(selector).fill(text)
-
+    @allure.step("Ввод текста в поле {name}")
+    def fill(self, locator: Locator, text: str, name: str) -> None:
+        locator.fill(text)
 
     @allure.step("Проверка, что текущий URL содержит: {expected_substring}")
-    def verify_url_contains(self, expected_substring: str):
-        expect(self.page).to_have_url(lambda url: expected_substring in url)
+    def verify_url_contains(self, expected_substring: str) -> None:
+        expect(self.page).to_have_url(
+            lambda url: expected_substring in url
+        )
 
-    @allure.step("Элемент с селектором: {selector} видим на странице")
-    def is_element_visible(self, selector: str) -> bool:
-        return self.page.locator(selector).is_visible()
+    @allure.step("Проверяем видимость элемента")
+    def should_be_visible(self, locator: Locator, name: str) -> None:
+        with allure.step(f"Элемент «{name}» виден на странице"):
+            expect(locator).to_be_visible()
+
+    @allure.step("Получаем текст элемента")
+    def get_text(self, locator: Locator) -> str:
+        return locator.inner_text()
 
 
+    @allure.step("Получаем текущий URL")
+    def get_current_url(self) -> str:
+        return self.page.url

@@ -1,6 +1,7 @@
 # Файл хранит общие методы, которые нужны на любой странице
 from playwright.sync_api import Locator, Page, expect
 import allure
+import re
 
 
 class BasePage:
@@ -23,7 +24,7 @@ class BasePage:
     @allure.step("Проверяем, что открыта страница: {self.PATH}")
     def should_have_url(self) -> None:
         expect(self.page).to_have_url(
-            lambda url: url.endswith(self.PATH)
+            re.compile(f".*{re.escape(self.PATH)}$")
         )
 
     @allure.step("Клик по элементу")
@@ -37,7 +38,7 @@ class BasePage:
     @allure.step("Проверка, что текущий URL содержит: {expected_substring}")
     def verify_url_contains(self, expected_substring: str) -> None:
         expect(self.page).to_have_url(
-            lambda url: expected_substring in url
+            re.compile(f".*{re.escape(expected_substring)}.*")
         )
 
     @allure.step("Проверяем видимость элемента")
@@ -48,8 +49,3 @@ class BasePage:
     @allure.step("Получаем текст элемента")
     def get_text(self, locator: Locator) -> str:
         return locator.inner_text()
-
-
-    @allure.step("Получаем текущий URL")
-    def get_current_url(self) -> str:
-        return self.page.url

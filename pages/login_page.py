@@ -9,7 +9,6 @@ class LoginPage(BasePage):
     USER_NAME = "input#user-name"
     PASSWORD = "input#password"
     LOGIN_BUTTON = "input#login-button"
-    ERROR_BUTTON = "button.error-button"
     ERROR_MESSAGE = "h3[data-test='error']"
 
     def __init__(self, page: Page):
@@ -18,7 +17,7 @@ class LoginPage(BasePage):
         self.user_name: Locator = page.locator(self.USER_NAME)
         self.password: Locator = page.locator(self.PASSWORD)
         self.login_button: Locator = page.locator(self.LOGIN_BUTTON)
-        self.error_message: Locator = page.locator(self.ERROR_BUTTON)
+        self.error_message: Locator = page.locator(self.ERROR_MESSAGE)
 
     @allure.step("Авторизация в личном кабинете")
     def login_to_application(self, user_name: str, password: str):
@@ -28,11 +27,10 @@ class LoginPage(BasePage):
 
     @allure.step("Проверяем сообщение об ошибке авторизации")
     def should_have_error_message(self, expected_text: str) -> None:
-        error_message = self.page.locator(self.ERROR_MESSAGE)
 
-        self.should_be_visible(error_message, "Сообщение об ошибке")
+        self.should_be_visible(self.error_message, "Сообщение об ошибке")
 
-        actual_text = self.get_text(error_message)
+        actual_text = self.get_text(self.error_message)
 
         assert actual_text == expected_text, (
             f"Текст ошибки не соответствует ожидаемому. "

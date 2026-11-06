@@ -21,7 +21,7 @@ class BasePage:
     def should_have_title(self, title: str) -> None:
         expect(self.page).to_have_title(title)
 
-    @allure.step("Проверяем, что открыта страница: {self.PATH}")
+    @allure.step("Проверяем, что открыта страница")
     def should_have_url(self) -> None:
         expect(self.page).to_have_url(
             re.compile(f".*{re.escape(self.PATH)}$")
@@ -31,11 +31,11 @@ class BasePage:
     def click(self, locator: Locator) -> None:
         locator.click()
 
-    @allure.step("Ввод текста в поле {name}")
+    @allure.step("Ввод текста в поле")
     def fill(self, locator: Locator, text: str, name: str) -> None:
         locator.fill(text)
 
-    @allure.step("Проверка, что текущий URL содержит: {expected_substring}")
+    @allure.step("Проверка, что текущий URL содержит")
     def verify_url_contains(self, expected_substring: str) -> None:
         expect(self.page).to_have_url(
             re.compile(f".*{re.escape(expected_substring)}.*")
@@ -49,3 +49,7 @@ class BasePage:
     @allure.step("Получаем текст элемента")
     def get_text(self, locator: Locator) -> str:
         return locator.inner_text()
+
+    @allure.step("Проверяем что элемент невидим")
+    def should_not_be_visible(self, locator: Locator) -> None:
+        expect(locator).not_to_be_visible()

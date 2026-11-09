@@ -50,6 +50,7 @@ class BasePage:
     def get_text(self, locator: Locator) -> str:
         return locator.inner_text()
 
-    @allure.step("Проверяем что элемент невидим")
-    def should_not_be_visible(self, locator: Locator) -> None:
-        expect(locator).not_to_be_visible()
+    @allure.step("Проверяем отсутствие элемента")
+    def should_not_be_visible(self, locator: Locator, name: str) -> None:
+        with allure.step(f"Элемент «{name}» не виден на странице"):
+            expect(locator).not_to_be_visible()

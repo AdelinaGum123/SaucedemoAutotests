@@ -1,9 +1,6 @@
 import pytest
-
-from pages.login_page import LoginPage
-from pages.inventory_page import InventoryPage
 import allure
-
+from pages.inventory_page import InventoryPage
 
 
 @allure.feature("Главная страница")
@@ -12,62 +9,56 @@ def test_saucedemo_title(login_page):
     login_page.should_have_title("Swag Labs")
 
 
-@allure.title('Успешная авторизация')
-def test_successful_login(page, base_url, credentials):
-    login_page = LoginPage(page)
-    login_page.open()
+@allure.feature("Авторизация")
+@allure.story("Успешная авторизация")
+@allure.title("Пользователь успешно авторизуется")
+def test_successful_login(login_page, credentials):
 
     login_page.login_to_application(
         credentials["standard_user"]["user_name"],
         credentials["standard_user"]["password"],
     )
 
-    with allure.step('Проверяем, что после логина нас перебросило на страницу каталога товаров'):
-        assert page.url == f'{base_url}{InventoryPage.PAGE_URL}'
+    inventory_page = InventoryPage(login_page.page)
 
-
-@allure.title('Вывод ошибки при неправильном логине и пароле')
-def test_invalid_login(page, credentials):
-    login_page = LoginPage(page)
-    login_page.open()
-
-    login_page.login_to_application(
-        credentials["invalid_user"]["user_name"],
-        credentials["invalid_user"]["password"],
-    )
-
-    with allure.step('Проверяем сообщение об ошибке'):
-        login_page.should_have_error_message(
-            "Epic sadface: Username and password do not match any user in this service"
-        )
+    with allure.step("Проверяем переход на страницу каталога товаров"):
+        inventory_page.should_have_url()
+        inventory_page.should_have_products_title("Products")
 
 
 @pytest.mark.parametrize(
     "user_name, password, expected_error",
     [
-        (
-        "invalid_user",
-         "wrong_password",
-        "Epic sadface: Username and password do not match any user in this service",
+        pytest.param(
+            "invalid_user",
+            "wrong_password",
+            "Epic sadface: Username and password do not match any user in this service",
+            id="invalid_credentials",
         ),
-        (
-        "",
-        "",
-        "Epic sadface: Username is required",
+        pytest.param(
+            "",
+            "",
+            "Epic sadface: Username is required",
+            id="empty_credentials",
         ),
-        ("invalid_user",
-         "",
-        "Epic sadface: Password is required",
+        pytest.param(
+            "invalid_user",
+            "",
+            "Epic sadface: Password is required",
+            id="empty_password"
         ),
-        ("locked_out_user",
-         "secret_sauce",
-         "Epic sadface: Sorry, this user has been locked out.",
+        pytest.param(
+            "locked_out_user",
+            "secret_sauce",
+            "Epic sadface: Sorry, this user has been locked out.",
+            id="locked_out_user"
         )
     ]
 )
-def test_invalid_credentials(page, user_name, password,expected_error):
-    login_page = LoginPage(page)
-    login_page.open()
+@allure.feature("Авторизация")
+@allure.story("Негативные сценарии")
+@allure.title("Проверка ошибок при авторизации")
+def test_invalid_credentials(login_page, user_name, password,expected_error):
 
     login_page.login_to_application(user_name, password)
 

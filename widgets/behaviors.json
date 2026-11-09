@@ -1,1 +1,1 @@
-{"total":10,"items":[{"uid":"0a3ae5f257f84b35d1433009096f560f","name":"Главная страница","statistic":{"failed":0,"broken":0,"skipped":0,"passed":1,"unknown":0,"total":1}}]}
+{"total":6,"items":[{"uid":"1c9c6c8eeff4f5d0ac53e399badbc609","name":"Авторизация","statistic":{"failed":0,"broken":0,"skipped":0,"passed":2,"unknown":0,"total":2}},{"uid":"0a3ae5f257f84b35d1433009096f560f","name":"Главная страница","statistic":{"failed":0,"broken":0,"skipped":0,"passed":1,"unknown":0,"total":1}}]}

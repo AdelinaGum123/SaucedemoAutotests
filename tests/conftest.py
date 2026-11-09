@@ -35,3 +35,16 @@ def login_page(page):
     lp = LoginPage(page)
     lp.open()
     return lp
+
+@pytest.fixture
+def authenticated_page(request, login_page, credentials):
+    user_type = getattr(request, "param", "standard_user")
+
+    user = credentials[user_type]
+
+    login_page.login_to_application(
+        user["user_name"],
+        user["password"],
+    )
+
+    return login_page.page

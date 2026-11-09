@@ -1,67 +1,31 @@
 import pytest
-
-from pages import inventory_page
-from pages.login_page import LoginPage
 from pages.inventory_page import InventoryPage
 import allure
 
 @allure.title('Проверка открытия страницы товаров и заголовка')
-def test_have_title(page, credentials):
-    login_page = LoginPage(page)
-    login_page.open()
-
-    login_page.login_to_application(
-        credentials["standard_user"]["user_name"],
-        credentials["standard_user"]["password"],
-    )
-
-    inventory_page = InventoryPage(page)
+def test_have_title(authenticated_page):
+    inventory_page = InventoryPage(authenticated_page)
 
     inventory_page.should_have_url()
     inventory_page.should_have_products_title("Products")
 
-@allure.title('Проверка добавления одного товара в корзину')
-def test_add_product_to_cart(page, credentials):
-    login_page = LoginPage(page)
-    login_page.open()
-
-    login_page.login_to_application(
-        credentials["standard_user"]["user_name"],
-        credentials["standard_user"]["password"],
-    )
-
-    inventory_page = InventoryPage(page)
-
-    inventory_page.add_product_to_cart('backpack')
-    inventory_page.should_have_cart_badge('1')
-
-@allure.title('Проверка добавления двух товаров в корзину')
-def test_add_product_to_cart(page, credentials):
-    login_page = LoginPage(page)
-    login_page.open()
-
-    login_page.login_to_application(
-        credentials["standard_user"]["user_name"],
-        credentials["standard_user"]["password"],
-    )
-
-    inventory_page = InventoryPage(page)
-
-    inventory_page.add_product_to_cart('backpack')
-    inventory_page.add_product_to_cart('bike-light')
-    inventory_page.should_have_cart_badge('2')
+@pytest.mark.parametrize(
+    ("products", "expected_count"),
+    [
+        pytest.param(["backpack"], "1", id="one-product"),
+        pytest.param(["backpack", "bike-light"], "2", id="two-products")
+    ],
+)
+@allure.title('Проверка добавления товаров в корзину')
+def test_add_product_to_cart(products, expected_count, authenticated_page):
+    inventory_page = InventoryPage(authenticated_page)
+    for product in products:
+        inventory_page.add_product_to_cart(product)
+    inventory_page.should_have_cart_badge(expected_count)
 
 @allure.title('Проверка удаления товара из корзины')
-def test_remove_product_from_cart(page, credentials):
-    login_page = LoginPage(page)
-    login_page.open()
-
-    login_page.login_to_application(
-        credentials["standard_user"]["user_name"],
-        credentials["standard_user"]["password"],
-    )
-
-    inventory_page = InventoryPage(page)
+def test_remove_product_from_cart(page, authenticated_page):
+    inventory_page = InventoryPage(authenticated_page)
 
     inventory_page.add_product_to_cart('backpack')
     inventory_page.should_have_cart_badge('1')
